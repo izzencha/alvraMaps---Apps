@@ -1,0 +1,7 @@
+{
+  "appId": "app.alvra.maps",
+  "appName": "AlvraMaps",
+  "webDir": "www",
+  "backgroundColor": "#3D4CF5",
+  "android": { "allowMixedContent": false }
+}
