@@ -1,0 +1,38 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Stage web files
+        run: |
+          mkdir -p www assets
+          cp index.html manifest.webmanifest sw.js logo.png icon-192.png icon-512.png www/
+          cp icon-1024.png assets/icon-only.png
+          cp splash.png assets/splash.png
+      - run: npm install
+      - run: npx cap add android
+      - name: Add location permission
+        run: |
+          sed -i 's|<application|<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <application|' android/app/src/main/AndroidManifest.xml
+      - name: App icon and splash
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#3D4CF5' --splashBackgroundColor '#3D4CF5'
+        continue-on-error: true
+      - run: npx cap sync android
+      - name: Build APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AlvraMaps-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
